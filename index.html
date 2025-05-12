@@ -26,6 +26,13 @@
         
         <label for="flow">Flow:</label>
         <input type="range" id="flow" class="slider" min="1" max="10" step="1" value="5">
+        
+        <label for="brushMode">Brush Mode:</label>
+        <select id="brushMode">
+            <option value="normal">Normal Brush</option>
+            <option value="spray">Spray Paint</option>
+            <option value="drip">Drip Pen</option>
+        </select>
 
         <button onclick="clearCanvas()">Clear</button>
     </div>
@@ -42,6 +49,7 @@
         let colorPicker = document.getElementById("color");
         let opacitySlider = document.getElementById("opacity");
         let flowSlider = document.getElementById("flow");
+        let brushMode = document.getElementById("brushMode");
 
         canvas.addEventListener("mousedown", (event) => {
             drawing = true;
@@ -59,31 +67,59 @@
         function draw(event) {
             if (!drawing) return;
 
-            ctx.lineWidth = flowSlider.value;
-            ctx.lineCap = "round";
             ctx.globalAlpha = opacitySlider.value;
             ctx.strokeStyle = colorPicker.value;
 
-            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
-            ctx.stroke();
+            let x = event.clientX - canvas.offsetLeft;
+            let y = event.clientY - canvas.offsetTop;
 
-            // Simulating drips randomly
-            if (Math.random() < 0.05) {
-                let dripX = event.clientX - canvas.offsetLeft;
-                let dripY = event.clientY - canvas.offsetTop;
-                simulateDrip(dripX, dripY);
+            if (brushMode.value === "normal") {
+                ctx.lineWidth = flowSlider.value;
+                ctx.lineCap = "round";
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+            } 
+            else if (brushMode.value === "spray") {
+                sprayEffect(x, y);
+            } 
+            else if (brushMode.value === "drip") {
+                ctx.lineWidth = flowSlider.value;
+                ctx.lineCap = "round";
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                animateDrip(x, y);
             }
-
-            ctx.beginPath();
-            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
         }
 
-        function simulateDrip(x, y) {
-            ctx.beginPath();
-            ctx.arc(x, y + Math.random() * 10, Math.random() * 4 + 2, 0, Math.PI * 2);
-            ctx.fillStyle = colorPicker.value;
-            ctx.globalAlpha = opacitySlider.value;
-            ctx.fill();
+        function sprayEffect(x, y) {
+            for (let i = 0; i < 10; i++) {
+                let offsetX = (Math.random() - 0.5) * 15;
+                let offsetY = (Math.random() - 0.5) * 15;
+                ctx.fillStyle = colorPicker.value;
+                ctx.globalAlpha = opacitySlider.value;
+                ctx.fillRect(x + offsetX, y + offsetY, 2, 2);
+            }
+        }
+
+        function animateDrip(x, y) {
+            let dripY = y;
+            let dripSize = Math.random() * 4 + 2;
+            function drop() {
+                if (dripY < canvas.height) {
+                    ctx.beginPath();
+                    ctx.arc(x, dripY, dripSize, 0, Math.PI * 2);
+                    ctx.fillStyle = colorPicker.value;
+                    ctx.globalAlpha = opacitySlider.value;
+                    ctx.fill();
+                    dripY += 2; // Move downward
+                    requestAnimationFrame(drop);
+                }
+            }
+            drop();
         }
 
         function clearCanvas() {
