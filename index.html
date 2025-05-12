@@ -1,19 +1,35 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>Drawing Board</title>
+    <title>Graffiti Drawing Board</title>
     <style>
-        body { text-align: center; }
-        canvas { border: 2px solid black; cursor: crosshair; }
-        button { margin: 5px; padding: 10px; }
+        body { text-align: center; background-color: #222; color: white; }
+        canvas { border: 2px solid black; background-color: white; cursor: crosshair; }
+        .controls { margin-top: 10px; }
+        .slider { margin: 5px; width: 200px; }
+        .colorPicker { width: 100px; }
     </style>
 </head>
 <body>
-    <h1>Draw on the Canvas</h1>
+    <h1>Graffiti Drawing Board 🎨🔥</h1>
+
+    <!-- Drawing Area -->
     <canvas id="canvas"></canvas>
-    <br>
-    <button onclick="clearCanvas()">Clear</button>
-    
+
+    <!-- Controls -->
+    <div class="controls">
+        <label for="color">Color:</label>
+        <input type="color" id="color" class="colorPicker">
+        
+        <label for="opacity">Opacity:</label>
+        <input type="range" id="opacity" class="slider" min="0.1" max="1" step="0.1" value="1">
+        
+        <label for="flow">Flow:</label>
+        <input type="range" id="flow" class="slider" min="1" max="10" step="1" value="5">
+
+        <button onclick="clearCanvas()">Clear</button>
+    </div>
+
     <script>
         let canvas = document.getElementById("canvas");
         let ctx = canvas.getContext("2d");
@@ -22,21 +38,52 @@
         canvas.height = 500;
 
         let drawing = false;
+        let lastX, lastY;
+        let colorPicker = document.getElementById("color");
+        let opacitySlider = document.getElementById("opacity");
+        let flowSlider = document.getElementById("flow");
 
-        canvas.addEventListener("mousedown", () => { drawing = true; });
-        canvas.addEventListener("mouseup", () => { drawing = false; ctx.beginPath(); });
+        canvas.addEventListener("mousedown", (event) => {
+            drawing = true;
+            lastX = event.clientX - canvas.offsetLeft;
+            lastY = event.clientY - canvas.offsetTop;
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            drawing = false;
+            ctx.beginPath();
+        });
+
         canvas.addEventListener("mousemove", draw);
 
         function draw(event) {
             if (!drawing) return;
-            ctx.lineWidth = 5;
+
+            ctx.lineWidth = flowSlider.value;
             ctx.lineCap = "round";
-            ctx.strokeStyle = "black";
+            ctx.globalAlpha = opacitySlider.value;
+            ctx.strokeStyle = colorPicker.value;
 
             ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
             ctx.stroke();
+
+            // Simulating drips randomly
+            if (Math.random() < 0.05) {
+                let dripX = event.clientX - canvas.offsetLeft;
+                let dripY = event.clientY - canvas.offsetTop;
+                simulateDrip(dripX, dripY);
+            }
+
             ctx.beginPath();
             ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+        }
+
+        function simulateDrip(x, y) {
+            ctx.beginPath();
+            ctx.arc(x, y + Math.random() * 10, Math.random() * 4 + 2, 0, Math.PI * 2);
+            ctx.fillStyle = colorPicker.value;
+            ctx.globalAlpha = opacitySlider.value;
+            ctx.fill();
         }
 
         function clearCanvas() {
