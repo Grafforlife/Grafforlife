@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Drawing Board</title>
+    <style>
+        body { text-align: center; }
+        canvas { border: 2px solid black; cursor: crosshair; }
+        button { margin: 5px; padding: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Draw on the Canvas</h1>
+    <canvas id="canvas"></canvas>
+    <br>
+    <button onclick="clearCanvas()">Clear</button>
+    
+    <script>
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext("2d");
+
+        canvas.width = 800;
+        canvas.height = 500;
+
+        let drawing = false;
+
+        canvas.addEventListener("mousedown", () => { drawing = true; });
+        canvas.addEventListener("mouseup", () => { drawing = false; ctx.beginPath(); });
+        canvas.addEventListener("mousemove", draw);
+
+        function draw(event) {
+            if (!drawing) return;
+            ctx.lineWidth = 5;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "black";
+
+            ctx.lineTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(event.clientX - canvas.offsetLeft, event.clientY - canvas.offsetTop);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
